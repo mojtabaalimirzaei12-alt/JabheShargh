@@ -5,11 +5,13 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Shader;
+import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -49,10 +51,32 @@ final class BookView extends View {
     private final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
     private final Paint fill = new Paint();
     private final Paint shade = new Paint();
+    private static final int MCOLS = 16;
+    private static final int MROWS = 2;
+    private final float[] verts = new float[(MCOLS + 1) * (MROWS + 1) * 2];
+    private final int[] vcols = new int[(MCOLS + 1) * (MROWS + 1)];
+    private Bitmap logo;
+    private Bitmap flagBmp;
 
     BookView(Context c) {
         super(c);
         slop = ViewConfiguration.get(c).getScaledTouchSlop();
+        logo = loadRes(c, "emblem_logo");
+        flagBmp = loadRes(c, "emblem_flag");
+    }
+
+    private static Bitmap loadRes(Context c, String name) {
+        try {
+            int id = c.getResources().getIdentifier(name, "drawable", c.getPackageName());
+            if (id == 0) {
+                return null;
+            }
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inScaled = false;
+            return BitmapFactory.decodeResource(c.getResources(), id, o);
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     void setBackdrop(Bitmap b) {
@@ -169,6 +193,51 @@ final class BookView extends View {
         } else {
             c.drawColor(BG);
         }
+        drawBook(c);
+        drawCorners(c);
+        if (flagBmp != null) {
+            postInvalidateOnAnimation();
+        }
+    }
+
+    private void drawCorners(Canvas c) {
+        float w = getWidth();
+        float h = getHeight();
+        float cy = 0.052f * h;
+        if (logo != null) {
+            float ls = 0.15f * w;
+            float cx = 0.115f * w;
+            full.set((int) (cx - ls / 2), (int) (cy - ls / 2), (int) (cx + ls / 2), (int) (cy + ls / 2));
+            c.drawBitmap(logo, null, full, paint);
+        }
+        if (flagBmp != null) {
+            drawFlag(c, 0.885f * w, cy, 0.19f * w);
+        }
+    }
+
+    private void drawFlag(Canvas c, float cx, float cy, float fw) {
+        float fh = fw * flagBmp.getHeight() / flagBmp.getWidth();
+        float x0 = cx - fw / 2f;
+        float y0 = cy - fh / 2f;
+        float amp = fh * 0.08f;
+        float t = (SystemClock.uptimeMillis() % 100000L) / 1000f * 3.6f;
+        int k = 0;
+        int ci = 0;
+        for (int r = 0; r <= MROWS; r++) {
+            for (int col = 0; col <= MCOLS; col++) {
+                float f = (float) col / MCOLS;
+                float ph = f * 5.5f - t;
+                float dy = (float) Math.sin(ph) * amp * (0.2f + 0.8f * f);
+                verts[k++] = x0 + fw * f;
+                verts[k++] = y0 + fh * r / MROWS + dy;
+                int g = 232 + (int) (23f * Math.cos(ph));
+                vcols[ci++] = 0xFF000000 | (g << 16) | (g << 8) | g;
+            }
+        }
+        c.drawBitmapMesh(flagBmp, MCOLS, MROWS, verts, 0, vcols, 0, paint);
+    }
+
+    private void drawBook(Canvas c) {
         if (src == null || count <= 0 || pw <= 0) {
             return;
         }
