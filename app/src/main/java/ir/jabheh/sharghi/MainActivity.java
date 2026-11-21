@@ -664,14 +664,17 @@ public class MainActivity extends Activity implements BookView.Callback {
             return getString(R.string.bismillah);
         }
         if (p == 1) {
+            return DedicationPage.text(this);
+        }
+        if (p == 2) {
             return getString(R.string.credits_title) + "\n"
                     + getString(R.string.label_author) + ": " + getString(R.string.val_author) + "\n"
                     + getString(R.string.label_compiler) + ": " + getString(R.string.val_compiler) + "\n"
                     + getString(R.string.val_about) + "\n"
                     + getString(R.string.label_dev) + ": " + getString(R.string.val_dev);
         }
-        if (pageTexts != null && p < pageTexts.length) {
-            return pageTexts[p].trim();
+        if (pageTexts != null && p - 1 < pageTexts.length) {
+            return pageTexts[p - 1].trim();
         }
         return "";
     }
@@ -684,7 +687,7 @@ public class MainActivity extends Activity implements BookView.Callback {
         trToken++;
         tvTranslate.setText(translateOn ? R.string.btn_original : R.string.btn_translate);
         readerScroll.scrollTo(0, 0);
-        if (p >= 2 && pageTexts == null) {
+        if (p >= 3 && pageTexts == null) {
             tvReader.setText(R.string.no_bookpages);
             return;
         }
@@ -693,7 +696,7 @@ public class MainActivity extends Activity implements BookView.Callback {
             tvReader.setText(R.string.no_text);
             return;
         }
-        if (!translateOn || p < 2) {
+        if (!translateOn || p < 3) {
             tvReader.setText(orig);
             return;
         }
