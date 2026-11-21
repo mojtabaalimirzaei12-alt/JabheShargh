@@ -13,6 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Fix resource file names
+        run: |
+          cd app/src/main/res/drawable
+          for f in *.png.jpg *.png.jpeg; do
+            [ -e "$f" ] || continue
+            n="${f%.jpg}"
+            n="${n%.jpeg}"
+            mv "$f" "$n"
+          done
+          ls -la
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
