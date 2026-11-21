@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,7 +22,15 @@ jobs:
           gradle-version: '8.9'
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/*.apk JabheShargh.apk
       - uses: actions/upload-artifact@v4
         with:
           name: JabheShargh-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: JabheShargh.apk
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest JabheShargh.apk --title "JabheShargh" --notes "Latest build" --target ${{ github.sha }}
