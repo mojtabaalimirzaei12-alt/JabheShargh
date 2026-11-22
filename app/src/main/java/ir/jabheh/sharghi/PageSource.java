@@ -22,8 +22,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Pages of the book. Logical page 0 = PDF page 2 (bismillah), logical page 1 = dedication page,
- * logical page 2 = credits page (both drawn natively), logical page k (k >= 3) = PDF index k-1.
+ * Pages of the book. Logical page 0 = PDF page 2 (bismillah), logical page 1 = credits page
+ * drawn natively, logical page k (k >= 2) = PDF page k+1. PDF page 1 (blank) is skipped.
  */
 final class PageSource {
     interface Listener {
@@ -96,12 +96,12 @@ final class PageSource {
     }
 
     int count() {
-        return ready ? pdfCount + 1 : 0;
+        return ready ? pdfCount : 0;
     }
 
     /** Returns the cached bitmap, or null and starts rendering it in the background. */
     Bitmap get(int page, int w, int h) {
-        if (!ready || w <= 0 || h <= 0 || page < 0 || page > pdfCount) {
+        if (!ready || w <= 0 || h <= 0 || page < 0 || page >= pdfCount) {
             return null;
         }
         final String key = page + "_" + w + "x" + h;
@@ -149,12 +149,9 @@ final class PageSource {
     private Bitmap render(int page, int w, int h) {
         try {
             if (page == 1) {
-                return DedicationPage.draw(uiCtx, w, h);
-            }
-            if (page == 2) {
                 return CreditsPage.draw(uiCtx, w, h);
             }
-            int idx = page == 0 ? 1 : page - 1;
+            int idx = page == 0 ? 1 : page;
             Bitmap out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             Canvas c = new Canvas(out);
             if (idx == 2 || idx == 3) {
