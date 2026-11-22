@@ -50,7 +50,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public class MainActivity extends Activity implements BookView.Callback {
-    private static final int SPLASH_MS = 2600;
+    private static final int SPLASH_MS = 3800;
     private static final int BG = 0xFF2B1B0E;
     private static final int GOLD = 0xFFE6C36A;
     private static final String MUSIC_ON = "\uD83D\uDD0A";
@@ -60,6 +60,7 @@ public class MainActivity extends Activity implements BookView.Callback {
     private PageSource source;
     private BookView book;
     private ImageView cover;
+    private View splash;
     private TextView tvPage;
     private TextView tvMark;
     private TextView tvMusic;
@@ -158,11 +159,68 @@ public class MainActivity extends Activity implements BookView.Callback {
         cover = new ImageView(this);
         cover.setScaleType(ImageView.ScaleType.FIT_CENTER);
         cover.setBackgroundColor(BG);
-        frame.addView(cover, new FrameLayout.LayoutParams(
+        splash = buildSplash();
+        frame.addView(splash, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         setContentView(frame);
         startLoading();
+    }
+
+    private View buildSplash() {
+        LinearLayout s = new LinearLayout(this);
+        s.setOrientation(LinearLayout.VERTICAL);
+        s.setBackgroundColor(BG);
+        s.setGravity(Gravity.CENTER_HORIZONTAL);
+        s.setPadding(dp(22), dp(28), dp(22), dp(28));
+        s.setClickable(true);
+
+        ImageView logo = new ImageView(this);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int lid = getResources().getIdentifier("basij_logo", "drawable", getPackageName());
+        if (lid != 0) {
+            logo.setImageResource(lid);
+        }
+        s.addView(logo, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1.2f));
+
+        View line1 = new View(this);
+        line1.setBackgroundColor(GOLD);
+        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(dp(140), dp(2));
+        lp1.topMargin = dp(10);
+        s.addView(line1, lp1);
+
+        TextView t = new TextView(this);
+        t.setText("\u06a9\u0627\u0631\u06cc \u0627\u0632 \u06af\u0631\u0648\u0647 \u0646\u0631\u0645\u200c\u0627\u0641\u0632\u0627\u0631\u06cc \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644 \u067e\u0627\u06cc\u06af\u0627\u0647 \u0642\u062f\u0633\n\u0634\u0631\u06a9\u062a \u0628\u0647\u0631\u0647\u200c\u0628\u0631\u062f\u0627\u0631\u06cc \u0646\u0641\u062a \u0648 \u06af\u0627\u0632 \u0634\u0631\u0642");
+        t.setTextColor(GOLD);
+        t.setTextSize(18f);
+        t.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        t.setGravity(Gravity.CENTER);
+        t.setLineSpacing(0f, 1.5f);
+        t.setShadowLayer(6f, 0f, 2f, 0xFF000000);
+        t.setPadding(0, dp(12), 0, dp(12));
+        s.addView(t, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        View line2 = new View(this);
+        line2.setBackgroundColor(GOLD);
+        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(dp(140), dp(2));
+        lp2.bottomMargin = dp(14);
+        s.addView(line2, lp2);
+
+        ImageView photo = new ImageView(this);
+        photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        photo.setBackgroundColor(GOLD);
+        photo.setPadding(dp(3), dp(3), dp(3), dp(3));
+        int pid = getResources().getIdentifier("basij_photo", "drawable", getPackageName());
+        if (pid != 0) {
+            photo.setImageResource(pid);
+        } else {
+            photo.setVisibility(View.GONE);
+        }
+        s.addView(photo, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+        return s;
     }
 
     private int dp(int v) {
@@ -448,10 +506,10 @@ public class MainActivity extends Activity implements BookView.Callback {
                 player.start();
             }
         }
-        cover.animate().alpha(0f).setDuration(700).withEndAction(new Runnable() {
+        splash.animate().alpha(0f).setDuration(700).withEndAction(new Runnable() {
             @Override
             public void run() {
-                cover.setVisibility(View.GONE);
+                splash.setVisibility(View.GONE);
             }
         }).start();
     }
@@ -468,7 +526,6 @@ public class MainActivity extends Activity implements BookView.Callback {
 
     @Override
     public void onTurnStart() {
-        flip.play();
     }
 
     // ---------- bookmarks / goto ----------
